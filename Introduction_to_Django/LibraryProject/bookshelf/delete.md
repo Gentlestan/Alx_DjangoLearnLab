@@ -1,11 +1,12 @@
-### 🔹 `delete.md` (Delete the book and verify)
+```python
+from bookshelf.models import Book
 
-# Delete the Book
-
+# Delete the book instance
 book = Book.objects.get(title="Nineteen Eighty-Four")
 book.delete()
-Book.objects.all()
 
-Output
+# Confirm deletion
+print(Book.objects.all())
+# Expected output: <QuerySet []>
 
-(<QuerySet []>,)
+```
