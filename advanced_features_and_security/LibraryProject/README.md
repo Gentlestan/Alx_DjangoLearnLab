@@ -46,6 +46,36 @@
 
       Directory: Introduction_to_Django
 
+      ## Permissions and Groups Setup
+
+This project implements role-based access control using Django permissions and groups.
+
+### Custom Permissions
+
+The `Book` model defines the following permissions:
+
+- can_view
+- can_create
+- can_edit
+- can_delete
+
+These permissions are declared in the model's Meta class.
+
+### Groups
+
+The following groups are created using Django Admin:
+
+- Viewers: can_view
+- Editors: can_view, can_create, can_edit
+- Admins: all permissions
+
+### Permission Enforcement
+
+Views are protected using Django's `@permission_required` decorator to ensure only authorized users can access certain actions.
+
+Example:
+@permission_required("bookshelf.can_edit", raise_exception=True)
+
       Author
       Ohazulike Stanley
       ALX Software Engineering Program – Week 10
