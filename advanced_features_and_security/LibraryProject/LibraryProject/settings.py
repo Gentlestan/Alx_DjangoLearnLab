@@ -132,8 +132,28 @@ CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 
 
+
+
 # Optional: content security policy (basic example)
 CSP_DEFAULT_SRC = ("'self'",)
+
+# Redirect all HTTP requests to HTTPS
+SECURE_SSL_REDIRECT = True
+
+
+# HTTP Strict Transport Security (HSTS)
+# Instruct browsers to only use HTTPS for 1 year (31536000 seconds)
+SECURE_HSTS_SECONDS = 31536000
+
+
+# Apply HSTS to all subdomains
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+
+
+# Allow domain to be preloaded by browsers
+SECURE_HSTS_PRELOAD = True
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
