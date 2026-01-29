@@ -153,6 +153,13 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 # Allow domain to be preloaded by browsers
 SECURE_HSTS_PRELOAD = True
 
+# PROXY / LOAD BALANCER SSL
+# ==========================
+
+
+# Trust the X-Forwarded-Proto header from proxy (e.g. Nginx)
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 
 
 # Default primary key field type
