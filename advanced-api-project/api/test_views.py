@@ -7,19 +7,20 @@ from .models import Author, Book
 User = get_user_model()
 
 class BookAPITest(APITestCase):
+    """Tests for Book API endpoints"""
 
     def setUp(self):
-        # Create a user
+        # Create a test user
         self.user = User.objects.create_user(
             username="testuser",
             email="testuser@example.com",
             password="password123"
         )
 
-        # Authenticate the DRF test client
+        # Authenticate DRF client with the test user
         self.client.force_authenticate(user=self.user)
 
-        # Create an author and a sample book
+        # Create a test author and a sample book
         self.author = Author.objects.create(name="Test Author")
         self.book = Book.objects.create(
             title="Test Book",
@@ -28,9 +29,9 @@ class BookAPITest(APITestCase):
         )
 
     def test_list_books(self):
-        """Test retrieving the list of books (anyone can read)"""
-        # Allow unauthenticated access for list
-        self.client.force_authenticate(user=None)  # remove authentication
+        """Test retrieving the list of books (public endpoint)"""
+        # Remove authentication to test public access
+        self.client.force_authenticate(user=None)
         response = self.client.get(reverse('book-list'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("Test Book", [book["title"] for book in response.data])
