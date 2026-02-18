@@ -4,7 +4,9 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.views import LoginView, LogoutView
-from .models import Post, Comment
+from django.db.models import Q  # ✅ For search functionality
+
+from .models import Post, Comment, Tag  # ✅ Added Tag
 from .forms import RegisterForm, ProfileUpdateForm, PostForm, CommentForm
 
 
@@ -88,15 +90,14 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 # Comment CRUD Views
 # -------------------------
 
-# Create comment (under a specific post)
 class CommentCreateView(LoginRequiredMixin, CreateView):
     model = Comment
     form_class = CommentForm
     template_name = 'blog/comment_form.html'
 
     def form_valid(self, form):
-        post_pk = self.kwargs['pk']  # pk of the post
-        post = get_object_or_404(Post, id=post_pk)
+        post_pk = self.kwargs['pk']
+        post = get_object_or_404(Post, pk=post_pk)
         form.instance.post = post
         form.instance.author = self.request.user
         return super().form_valid(form)
@@ -105,28 +106,63 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
         return self.object.post.get_absolute_url()
 
 
-# Update comment (author only)
 class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Comment
     form_class = CommentForm
     template_name = 'blog/comment_form.html'
 
     def test_func(self):
-        comment = self.get_object()
-        return self.request.user == comment.author
+        return self.request.user == self.get_object().author
 
     def get_success_url(self):
         return self.object.post.get_absolute_url()
 
 
-# Delete comment (author only)
 class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Comment
     template_name = 'blog/comment_confirm_delete.html'
 
     def test_func(self):
-        comment = self.get_object()
-        return self.request.user == comment.author
+        return self.request.user == self.get_object().author
 
     def get_success_url(self):
         return self.object.post.get_absolute_url()
+
+
+# ======================================================
+# ✅ NEW FEATURES — TAGGING & SEARCH
+# ======================================================
+
+# -------------------------
+# View Posts by Tag
+# URL: /tags/<tag_name>/
+# -------------------------
+def posts_by_tag(request, tag_name):
+    tag = get_object_or_404(Tag, name=tag_name)
+    posts = tag.posts.all().order_by('-published_date')
+
+    return render(request, 'blog/posts_by_tag.html', {
+        'tag': tag,
+        'posts': posts
+    })
+
+
+# -------------------------
+# Search Posts
+# URL: /search/?q=keyword
+# -------------------------
+def search_posts(request):
+    query = request.GET.get('q')
+    results = []
+
+    if query:
+        results = Post.objects.filter(
+            Q(title__icontains=query) |
+            Q(content__icontains=query) |
+            Q(tags__name__icontains=query)
+        ).distinct().order_by('-published_date')
+
+    return render(request, 'blog/search_results.html', {
+        'query': query,
+        'results': results
+    })
