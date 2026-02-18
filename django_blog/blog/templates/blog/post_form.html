@@ -1,10 +1,31 @@
 {% extends "blog/base.html" %} {% block content %}
 <h2>{% if form.instance.pk %}Edit{% else %}Create{% endif %} Post</h2>
+
 <form method="post">
-  {% csrf_token %} {{ form.as_p }}
+  {% csrf_token %}
+
+  <p>
+    {{ form.title.label_tag }}<br />
+    {{ form.title }}
+  </p>
+
+  <p>
+    {{ form.content.label_tag }}<br />
+    {{ form.content }}
+  </p>
+
+  <p>
+    {{ form.tags.label_tag }}<br />
+    {{ form.tags }}
+    <small class="text-muted"
+      >Enter tags separated by commas (e.g., django, python, web)</small
+    >
+  </p>
+
   <button type="submit">
     {% if form.instance.pk %}Update{% else %}Create{% endif %}
   </button>
 </form>
+
 <a href="{% url 'post-list' %}">Cancel</a>
 {% endblock %}

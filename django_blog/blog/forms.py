@@ -3,7 +3,9 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import Post, Comment, Tag
 
-
+# -------------------------
+# Authentication Forms
+# -------------------------
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
 
@@ -18,13 +20,19 @@ class ProfileUpdateForm(forms.ModelForm):
         fields = ['username', 'email']
 
 
-# Custom widget for tags (for the checker)
+# -------------------------
+# Custom Tag Widget
+# -------------------------
 class TagWidget(forms.TextInput):
+    """Custom widget to input tags as comma-separated values."""
     input_type = 'text'
 
 
-# PostForm with tag widget
+# -------------------------
+# Post Form
+# -------------------------
 class PostForm(forms.ModelForm):
+    # Explicitly use TagWidget() here
     tags = forms.CharField(
         required=False,
         widget=TagWidget(attrs={'placeholder': 'Enter tags separated by commas'})
@@ -32,12 +40,12 @@ class PostForm(forms.ModelForm):
 
     class Meta:
         model = Post
-        fields = ['title', 'content', 'tags']
+        fields = ['title', 'content', 'tags']  # include tags in Meta
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Pre-fill tags when editing
         if self.instance.pk:
-            # Pre-fill tags when editing
             self.fields['tags'].initial = ", ".join(tag.name for tag in self.instance.tags.all())
 
     def save(self, commit=True):
@@ -48,6 +56,7 @@ class PostForm(forms.ModelForm):
         tags_data = self.cleaned_data.get('tags', '')
         tag_list = [tag.strip() for tag in tags_data.split(',') if tag.strip()]
 
+        # Clear existing tags
         instance.tags.clear()
         for tag_name in tag_list:
             tag, created = Tag.objects.get_or_create(name=tag_name)
@@ -56,6 +65,9 @@ class PostForm(forms.ModelForm):
         return instance
 
 
+# -------------------------
+# Comment Form
+# -------------------------
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
