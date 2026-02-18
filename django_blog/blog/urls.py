@@ -32,7 +32,9 @@ urlpatterns = [
     # -------------------------
     # Tag Filtering
     # -------------------------
-    path('tags/<str:tag_name>/', views.posts_by_tag, name='posts-by-tag'),
+      # ✅ Tag filtering using slug
+    path('tags/<slug:tag_slug>/', views.PostByTagListView.as_view(), name='posts-by-tag'),
+
 
     # -------------------------
     # Search
