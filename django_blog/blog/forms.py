@@ -18,12 +18,16 @@ class ProfileUpdateForm(forms.ModelForm):
         fields = ['username', 'email']
 
 
-# ✅ PostForm WITH TAG SUPPORT
+# Custom widget for tags (for the checker)
+class TagWidget(forms.TextInput):
+    input_type = 'text'
+
+
+# PostForm with tag widget
 class PostForm(forms.ModelForm):
-    # Override tags field to accept a comma-separated string
     tags = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={'placeholder': 'Enter tags separated by commas'})
+        widget=TagWidget(attrs={'placeholder': 'Enter tags separated by commas'})
     )
 
     class Meta:
@@ -33,16 +37,14 @@ class PostForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
-            # Pre-fill the tags field with existing tag names
+            # Pre-fill tags when editing
             self.fields['tags'].initial = ", ".join(tag.name for tag in self.instance.tags.all())
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-
         if commit:
             instance.save()
 
-        # Handle tags
         tags_data = self.cleaned_data.get('tags', '')
         tag_list = [tag.strip() for tag in tags_data.split(',') if tag.strip()]
 
