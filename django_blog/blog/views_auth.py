@@ -1,16 +1,16 @@
+# blog/views_auth.py
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from .forms import RegisterForm, ProfileUpdateForm
 
-
 # Home view
 def home(request):
     return render(request, 'blog/index.html')
 
 
-# Registration View
+# Registration view
 def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -23,7 +23,7 @@ def register(request):
     return render(request, 'blog/register.html', {'form': form})
 
 
-# Profile View
+# Profile view
 @login_required
 def profile(request):
     if request.method == 'POST':
