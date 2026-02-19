@@ -6,7 +6,6 @@ from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 
 from .models import Post, Comment
 from .serializers import PostSerializer, CommentSerializer
@@ -43,21 +42,20 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 # -----------------------------
-# Feed View
+# Feed View with Pagination
 # -----------------------------
 class FeedPagination(PageNumberPagination):
-    page_size = 5  # posts per page, adjust as needed
+    page_size = 5  # adjust number of posts per page
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def feed(request):
     """
-    Return posts from users the current user follows, newest first.
-    Paginated.
+    Return paginated posts from users the current user follows, newest first.
     """
-    followed_users = request.user.following.all()
-    posts = Post.objects.filter(author__in=followed_users).order_by('-created_at')
+    following_users = request.user.following.all()
+    posts = Post.objects.filter(author__in=following_users).order_by('-created_at')
 
     paginator = FeedPagination()
     page = paginator.paginate_queryset(posts, request)
