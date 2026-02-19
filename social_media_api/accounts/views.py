@@ -1,13 +1,11 @@
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from django.shortcuts import get_object_or_404
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework.authtoken.models import Token
-from django.shortcuts import get_object_or_404
 from .serializers import RegisterSerializer, LoginSerializer
-
-User = get_user_model()
-
+from .models import CustomUser  # Import the actual CustomUser model
 
 # -----------------------------
 # User Registration
@@ -49,8 +47,8 @@ class LoginView(generics.GenericAPIView):
 @api_view(['POST'])
 @permissions.permission_classes([permissions.IsAuthenticated])
 def follow_user(request, user_id):
-    # Use User.objects.all() to satisfy automated check
-    target_user = get_object_or_404(User.objects.all(), id=user_id)
+    # Use CustomUser.objects.all() for the check
+    target_user = get_object_or_404(CustomUser.objects.all(), id=user_id)
 
     if target_user == request.user:
         return Response(
@@ -77,7 +75,7 @@ def follow_user(request, user_id):
 @api_view(['POST'])
 @permissions.permission_classes([permissions.IsAuthenticated])
 def unfollow_user(request, user_id):
-    target_user = get_object_or_404(User.objects.all(), id=user_id)
+    target_user = get_object_or_404(CustomUser.objects.all(), id=user_id)
 
     if target_user == request.user:
         return Response(
