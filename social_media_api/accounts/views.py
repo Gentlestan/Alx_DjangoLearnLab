@@ -1,29 +1,19 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny
 from .serializers import RegisterSerializer, LoginSerializer
 
-User = get_user_model()
 
 # -----------------------------
 # User Registration
 # -----------------------------
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
-    permission_classes = [AllowAny]  # Anyone can register
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        # Generate token for new user
-        token, created = Token.objects.get_or_create(user=user)
-        return Response({
-            "user": serializer.data,
-            "token": token.key
-        }, status=status.HTTP_201_CREATED)
+    permission_classes = [AllowAny]
+    # No need to override post()
+    # Token is created inside serializer
 
 
 # -----------------------------
@@ -31,7 +21,7 @@ class RegisterView(generics.CreateAPIView):
 # -----------------------------
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
-    permission_classes = [AllowAny]  # Anyone can log in
+    permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -42,8 +32,10 @@ class LoginView(generics.GenericAPIView):
         user = authenticate(username=username, password=password)
 
         if user:
-            # Generate or get token
             token, created = Token.objects.get_or_create(user=user)
             return Response({"token": token.key})
 
-        return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response(
+            {"error": "Invalid credentials"},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
