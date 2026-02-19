@@ -1,11 +1,12 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, generics
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
+
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+from rest_framework.response import Response
 
 from .models import Post, Comment
 from .serializers import PostSerializer, CommentSerializer
@@ -42,22 +43,27 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 # -----------------------------
-# Feed View with Pagination
+# Feed View (Posts from Followed Users)
 # -----------------------------
 class FeedPagination(PageNumberPagination):
-    page_size = 5  # adjust number of posts per page
+    page_size = 5  # posts per page
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def feed(request):
+class FeedView(generics.GenericAPIView):
     """
-    Return paginated posts from users the current user follows, newest first.
+    Returns a paginated feed of posts from users that the current user follows.
     """
-    following_users = request.user.following.all()
-    posts = Post.objects.filter(author__in=following_users).order_by('-created_at')
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = FeedPagination
 
-    paginator = FeedPagination()
-    page = paginator.paginate_queryset(posts, request)
-    serializer = PostSerializer(page, many=True)
-    return paginator.get_paginated_response(serializer.data)
+    def get(self, request, *args, **kwargs):
+        # Get users that current user follows
+        following_users = request.user.following.all()
+        # Filter posts by those users
+        posts = Post.objects.filter(author__in=following_users).order_by('-created_at')
+
+        # Paginate posts
+        page = self.paginate_queryset(posts)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
