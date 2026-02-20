@@ -1,11 +1,12 @@
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from django.shortcuts import get_object_or_404
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from .serializers import RegisterSerializer, LoginSerializer
-from .models import CustomUser  # Import the actual CustomUser model
+from .models import CustomUser
+
 
 # -----------------------------
 # User Registration
@@ -45,9 +46,8 @@ class LoginView(generics.GenericAPIView):
 # Follow another user
 # -----------------------------
 @api_view(['POST'])
-@permissions.permission_classes([permissions.IsAuthenticated])
+@permission_classes([permissions.IsAuthenticated])
 def follow_user(request, user_id):
-    # Use CustomUser.objects.all() for the check
     target_user = get_object_or_404(CustomUser.objects.all(), id=user_id)
 
     if target_user == request.user:
@@ -63,6 +63,7 @@ def follow_user(request, user_id):
         )
 
     request.user.following.add(target_user)
+
     return Response(
         {"message": f"You are now following {target_user.username}"},
         status=status.HTTP_200_OK
@@ -73,7 +74,7 @@ def follow_user(request, user_id):
 # Unfollow another user
 # -----------------------------
 @api_view(['POST'])
-@permissions.permission_classes([permissions.IsAuthenticated])
+@permission_classes([permissions.IsAuthenticated])
 def unfollow_user(request, user_id):
     target_user = get_object_or_404(CustomUser.objects.all(), id=user_id)
 
@@ -84,6 +85,7 @@ def unfollow_user(request, user_id):
         )
 
     request.user.following.remove(target_user)
+
     return Response(
         {"message": f"You have unfollowed {target_user.username}"},
         status=status.HTTP_200_OK

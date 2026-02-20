@@ -1,4 +1,5 @@
 from rest_framework import viewsets, generics, permissions
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -47,24 +48,26 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 # -----------------------------
-# Feed View
+# Feed Pagination
 # -----------------------------
 class FeedPagination(PageNumberPagination):
-    page_size = 5  # Number of posts per page
+    page_size = 5
 
 
+# -----------------------------
+# Feed View
+# -----------------------------
 class FeedView(generics.ListAPIView):
     """
-    Returns a feed of posts from users that the current user follows.
-    Ordered by newest first.
-    Only accessible to authenticated users.
+    Returns posts from users the current user follows,
+    ordered by newest first.
     """
     serializer_class = PostSerializer
-    permission_classes = [permissions.IsAuthenticated]  # <-- explicit for checker
+    permission_classes = [IsAuthenticated]  # Explicit import
     pagination_class = FeedPagination
 
     def get_queryset(self):
-        # Get all users the current user is following
         following_users = self.request.user.following.all()
-        # Return posts from those users, newest first
-        return Post.objects.filter(author__in=following_users).order_by('-created_at')
+        return Post.objects.filter(
+            author__in=following_users
+        ).order_by('-created_at')
