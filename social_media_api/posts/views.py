@@ -59,15 +59,14 @@ class FeedPagination(PageNumberPagination):
 # -----------------------------
 class FeedView(generics.ListAPIView):
     """
-    Returns posts from users the current user follows,
-    ordered by newest first.
+    Returns posts from users that the current user follows.
+    Ordered by newest first.
+    Only accessible to authenticated users.
     """
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated]  # Explicit import
+    permission_classes = [IsAuthenticated]
     pagination_class = FeedPagination
 
     def get_queryset(self):
         following_users = self.request.user.following.all()
-        return Post.objects.filter(
-            author__in=following_users
-        ).order_by('-created_at')
+        return Post.objects.filter(author__in=following_users).order_by('-created_at')
